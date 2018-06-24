@@ -1,0 +1,6 @@
+{
+  "main": "main.js",
+  "dependencies": {
+    "node-osc": "^2.1.0"
+  }
+}

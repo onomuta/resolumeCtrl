@@ -1,0 +1,128 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Hello World!</title>
+  <style>
+  	body {
+			border:solid 2px #f00;
+	    background-color: rgba(0, 0, 0, .4);
+      margin: 0;
+	    color: #fff;
+	    -webkit-app-region: drag;
+	    -webkit-user-select: none;
+		}
+  </style>
+</head>
+
+<body>
+  <button onclick="oscHoge()">hgoe</button>
+</body>
+<script>
+	var osc = require('node-osc');
+
+	var sendCount = 0;
+	var oscClient = new osc.Client('127.0.0.1', 7000);
+
+	// composition/tempocontroller/tempo
+	// var oscServer = new osc.Server(701);
+	// oscServer.on("message", function (msg, rinfo) {
+
+	//     console.log(msg);
+	//     for(var i=0; i<msg.length; i++) {
+	//         console.log(msg[i]);
+	//     }
+	//     var sendMsg =  new osc.Message('/address');
+	//     sendMsg.append("test");
+	//     sendMsg.append(sendCount);
+	//     oscClient.send(sendMsg);
+	//     sendCount++;
+	// });
+
+
+	var layer1Opacity =  new osc.Message('/composition/layers/1/video/opacity');
+	var layer2Opacity =  new osc.Message('/composition/layers/2/video/opacity');
+	var layer3Opacity =  new osc.Message('/composition/layers/3/video/opacity');
+	var layer4Opacity =  new osc.Message('/composition/layers/4/video/opacity');
+
+
+	var selectLayer = 0;
+	function oscHoge(){
+	  // var sendMsg =  new osc.Message('/composition/layers/1/video/opacity');
+	  // sendMsg.append(1);
+		// oscClient.send(sendMsg);
+		
+		layerSelect(selectLayer)
+		
+		selectLayer = (selectLayer + 1) % 5;
+		console.log(layer1Opacity);
+		
+		oscClient.send(layer1Opacity);
+		oscClient.send(layer2Opacity);
+		oscClient.send(layer3Opacity);
+		oscClient.send(layer4Opacity);
+	}
+
+
+	function layerSelect(num){
+		if(num == 0){
+			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 0);
+			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 0);
+			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
+			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 0);
+		}else if(num == 1){
+			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 1);
+			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 0);
+			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
+			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 0);
+		}else if(num == 2){
+			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 0);
+			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 1);
+			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
+			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 0);
+		}else if(num == 3){
+			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 0);
+			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 0);
+			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 1);
+			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 0);
+		}else if(num == 4){
+			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 0);
+			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 0);
+			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
+			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 1);
+		}
+	}
+
+
+
+	function step(timestamp) {
+		if (!start) start = timestamp;
+		var progress = timestamp - start;
+		element.style.left = Math.min(progress / 10, 200) + 'px';
+		if (progress < 2000) {
+			window.requestAnimationFrame(step);
+		}
+	}
+
+	window.requestAnimationFrame(step);
+
+
+
+ 	var controlType = 0;
+	//  0 : stop
+	//  1 : step
+	//  2 : fader
+
+	var frameCount = 0;
+	(function loop(){
+		window.requestAnimationFrame(loop);
+		//再描画時の処理
+		frameCount ++;
+		
+		if(frameCount >5){
+			oscHoge();
+			frameCount = 0;
+		}
+	})();
+
+</script>
+</html>
