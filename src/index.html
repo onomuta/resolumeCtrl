@@ -5,7 +5,7 @@
   <style>
   	body {
 			/* border:solid 1px #f00; */
-	    background-color: rgba(0, 0, 0, .4);
+	    background-color: rgba(0, 0, 0, .8);
       margin: 0;
 	    color: #fff;
 	    -webkit-app-region: drag;
@@ -15,22 +15,47 @@
 		.play-btn{
 			width:40px;
 			height:40px;
-			border:solid 1px #999;
+			/* border:solid 1px #999; */
+			text-align: center;
+			vertical-align: middle;
+    	display: table-cell;
 		}
 		.play-btn.active{
 			background:#ccc
+		}
+
+		.layer-disp{
+			width:40px;
+			height:40px;
+			text-align: center;
+			vertical-align: middle;
+    	display: table-cell;
+		}
+		.layer-disp.active{
+			background:#ccc;
 		}
   </style>
 </head>
 
 <body>
-	<!-- <button onclick="oscHoge()">hgoe</button> -->
-	<div class="play-btn" id="playBtn">▶</div>
-	<div class="play-btn" id="faderBtn">✖</div>
-	<div class="play-btn" id="stopBtn">■</div>
+	<!-- <button onclick="layerStepper()">hgoe</button> -->
+	<div style="display:block">
+		<div class="play-btn" id="playBtn">▶</div>
+		<div class="play-btn" id="randomBtn">R</div>
+		<div class="play-btn" id="faderBtn">✖</div>
+		<div class="play-btn" id="stopBtn">■</div>
+	</div>
+	<div style="display:block">
+		<div class="layer-disp" id="layer1">1</div>
+		<div class="layer-disp" id="layer2">2</div>
+		<div class="layer-disp" id="layer3">3</div>
+		<div class="layer-disp" id="layer4">4</div>
+	</div>
 
-	<div class="play-btn" id="stopBtn">■</div>
 
+
+	<!-- <select id="select-midi-input-device"></select>
+	<select id="select-midi-input-ch"></select> -->
 
 </body>
 <script>
@@ -62,20 +87,15 @@
 
 
 	var selectLayer = 0;
-	function oscHoge(){
+	function layerStepper(){
 	  // var sendMsg =  new osc.Message('/composition/layers/1/video/opacity');
 	  // sendMsg.append(1);
 		// oscClient.send(sendMsg);
 		
-		layerSelect(selectLayer)
+		layerSelect(selectLayer + 1)
 		
-		selectLayer = (selectLayer + 1) % 5;
-		console.log(layer1Opacity);
+		selectLayer = (selectLayer + 1) % 4;
 		
-		oscClient.send(layer1Opacity);
-		oscClient.send(layer2Opacity);
-		oscClient.send(layer3Opacity);
-		oscClient.send(layer4Opacity);
 	}
 
 
@@ -106,6 +126,21 @@
 			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
 			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 1);
 		}
+
+		var elements = document.getElementsByClassName("layer-disp active");
+		for(var i = 0; i < elements.length; i ++){
+			elements[i].classList.remove( "active" );
+		}
+
+		if(num > 0){
+			document.getElementById("layer" + num).classList.add("active");
+		}
+		
+		//OSC送信
+		oscClient.send(layer1Opacity);
+		oscClient.send(layer2Opacity);
+		oscClient.send(layer3Opacity);
+		oscClient.send(layer4Opacity);
 	}
 
 	// var start = null;
@@ -125,6 +160,7 @@
 	//  0 : stop
 	//  1 : play step
 	//  2 : fader
+	//  3 : random
 	document.getElementById("stopBtn").onclick = function() {
 		controlType = 0; 
 		var elements = document.getElementsByClassName("play-btn active");
@@ -159,11 +195,78 @@
 		//再描画時の処理
 		frameCount ++;
 		
-		if(frameCount >14){
-			oscHoge();
-			frameCount = 0;
+		
+		if(controlType == 1){   //stepの場合
+			if(frameCount >faderCtrlVal/4+1){
+				layerStepper();
+				frameCount = 0;
+			}
+		}else if(controlType == 2){  //faderの場合
+			
+			layerSelect(Math.round(faderCtrlVal/25));
 		}
+
 	})();
+
+
+
+
+	////////////////////////////////////////////////////////////////////////////////
+  //MIDI
+	////////////////////////////////////////////////////////////////////////////////
+
+	navigator.requestMIDIAccess().then(onMIDISuccess,onMIDIFailure);
+	var midi = null;
+	var inputs = [];
+	var outputs = [];
+	var output = null;
+	var chs = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+	var ch = 1;
+
+	function onMIDISuccess(m){
+		midi = m;
+		var it = midi.inputs.values();
+		for(var o = it.next(); !o.done; o = it.next()){
+			inputs.push(o.value);
+		}
+		var ot = midi.outputs.values();
+		for(var o = ot.next(); !o.done; o = ot.next()){
+			outputs.push(o.value);
+		}
+	
+		
+		for(var cnt=0;cnt < inputs.length;cnt++){
+			inputs[cnt].onmidimessage = onMIDIEvent;
+		}
+	}
+
+
+
+
+
+	var faderCtrlVal = 32;
+	function onMIDIEvent(e){
+		if(e.data[2] != 0){ 
+			// なにかをうけとったときの処理
+			console.log(e.data[2]);
+			// console.log(e.data[1]);
+
+			faderCtrlVal = e.data[2];
+		}
+	}
+
+	function onMIDIFailure(){
+		console.log("munen!");
+	};
+
+	function sendCC(cc, val){
+		// if(outputs.length > 0){
+		//   outputs[0].send([0xB0, cc, val]);
+		// }
+		if(output){
+			output.send([0xB0 + ch-1, cc, val]);
+		}
+	}
 
 </script>
 </html>

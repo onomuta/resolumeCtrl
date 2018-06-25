@@ -18,8 +18,8 @@ function createWindow() {
   // メインウィンドウを作成します
   mainWindow = new BrowserWindow({
     // ウィンドウ作成時のオプション
-      width: 400,
-      height: 200,
+      width: 160,
+      height: 80,
       transparent: true,    // ウィンドウの背景を透過
       frame: false,     // 枠の無いウィンドウ
       // resizable: false,  // ウィンドウのリサイズを禁止
