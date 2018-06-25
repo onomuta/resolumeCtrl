@@ -1,8 +1,8 @@
 {
   "scripts": {
     "start": "electron ./src",
-    "build-macOS": "electron-packager ./src FirstApp --platform=darwin --arch=x64 --overwrite",
-    "build-windows": "electron-packager ./src FirstApp --platform=win32 --arch=x64 --overwrite"
+    "build-macOS": "electron-packager ./src resolumeCtrl --platform=darwin --arch=x64 --overwrite",
+    "build-windows": "electron-packager ./src resolumeCtrl --platform=win32 --arch=x64 --overwrite"
   },
   "devDependencies": {
     "electron": "^2.0.3",
