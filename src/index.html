@@ -4,7 +4,9 @@
   <title>Hello World!</title>
   <style>
   	body {
-			/* border:solid 1px #f00; */
+			/* border:solid 1px #f00;
+			box-sizing: border-box;
+			border-radius: 4px; */
 	    background-color: rgba(0, 0, 0, .8);
       margin: 0;
 	    color: #fff;
@@ -21,7 +23,8 @@
     	display: table-cell;
 		}
 		.play-btn.active{
-			background:#ccc
+			background:#ccc;
+			color:black;
 		}
 
 		.layer-disp{
@@ -33,6 +36,38 @@
 		}
 		.layer-disp.active{
 			background:#ccc;
+			color:black;
+		}
+
+		.audio-disp{
+			width:40px;
+			height:40px;
+			text-align: center;
+			vertical-align: middle;
+    	display: table-cell;
+		}
+		input{
+			-webkit-app-region: no-drag;
+		}
+		input[type="range"] {
+			display: block;
+			-webkit-appearance: none;
+			background-color: rgba(255,255,255,0.1);
+			width: 200px;
+			height: 40px;
+			/* border-radius: 5px; */
+			margin: 0 auto;
+			outline: 0;
+		}
+		input[type="range"]::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			background-color: #ccc;
+			width: 20px;
+			height: 40px;
+			/* border-radius: 50%; */
+			border: 2px solid white;
+			cursor: pointer;
+			transition: .3s ease-in-out;
 		}
   </style>
 </head>
@@ -43,19 +78,57 @@
 		<div class="play-btn" id="playBtn">▶</div>
 		<div class="play-btn" id="randomBtn">R</div>
 		<div class="play-btn" id="faderBtn">✖</div>
-		<div class="play-btn" id="stopBtn">■</div>
+		<div class="play-btn" id="audioBtn">A</div>
+		<div class="play-btn active" id="stopBtn">■</div>
+
+		<div class="play-btn" id="settingBtn" onclick="showModalDialogElement()">⚙</div>
+
 	</div>
 	<div style="display:block">
 		<div class="layer-disp" id="layer1">1</div>
 		<div class="layer-disp" id="layer2">2</div>
 		<div class="layer-disp" id="layer3">3</div>
 		<div class="layer-disp" id="layer4">4</div>
+		<!-- <div class="layer-disp" id="layer5">5</div>
+		<div class="layer-disp" id="layer6">6</div>
+		<div class="layer-disp" id="layer7">7</div>
+		<div class="layer-disp" id="layer8">8</div> -->
 	</div>
 
+	<!-- <div class="type-data-container">
+		<div class="type-play">
+			<div class="audio-disp" id="volume"></div>
+		</div>
 
+	</div> -->
+
+	
+
+	<input type="range" min="0" max="127" step="1" value="0">
+	<div class="value" style="position:absolute; left: 20px; top:130px; z-index:-1">0</div>
 
 	<!-- <select id="select-midi-input-device"></select>
 	<select id="select-midi-input-ch"></select> -->
+
+
+
+
+
+	<dialog id="sample-dialog">
+		<form method="dialog">
+			<span>OSC Out</span>
+			<input id="oscOut" placeholder="Port"/><br>
+
+			<!-- <span>MIDI 1</span>
+			<input id="cc1" placeholder="cc"/><br> -->
+
+			<button type="submit" value="cancel">Cancel</button>
+			<button type="submit" value="ok">Ok</button>
+		</form>
+	</dialog>
+
+
+
 
 </body>
 <script>
@@ -80,59 +153,50 @@
 	// });
 
 
-	var layer1Opacity =  new osc.Message('/composition/layers/1/video/opacity');
-	var layer2Opacity =  new osc.Message('/composition/layers/2/video/opacity');
-	var layer3Opacity =  new osc.Message('/composition/layers/3/video/opacity');
-	var layer4Opacity =  new osc.Message('/composition/layers/4/video/opacity');
-
-
-	var selectLayer = 0;
-	function layerStepper(){
-	  // var sendMsg =  new osc.Message('/composition/layers/1/video/opacity');
-	  // sendMsg.append(1);
-		// oscClient.send(sendMsg);
-		
-		layerSelect(selectLayer + 1)
-		
-		selectLayer = (selectLayer + 1) % 4;
-		
-	}
-
+	var layer1Opacity =  new osc.Message('/composition/layers/1/bypassed');
+	var layer2Opacity =  new osc.Message('/composition/layers/2/bypassed');
+	var layer3Opacity =  new osc.Message('/composition/layers/3/bypassed');
+	var layer4Opacity =  new osc.Message('/composition/layers/4/bypassed');
+	// var layer5Opacity =  new osc.Message('/composition/layers/5/bypassed');
+	// var layer6Opacity =  new osc.Message('/composition/layers/6/bypassed');
+	// var layer7Opacity =  new osc.Message('/composition/layers/7/bypassed');
+	// var layer8Opacity =  new osc.Message('/composition/layers/8/bypassed');
 
 	function layerSelect(num){
+		layer1Opacity = new osc.Message('/composition/layers/1/bypassed', 1);
+		layer2Opacity = new osc.Message('/composition/layers/2/bypassed', 1);
+		layer3Opacity = new osc.Message('/composition/layers/3/bypassed', 1);
+		layer4Opacity = new osc.Message('/composition/layers/4/bypassed', 1);
+		// layer5Opacity = new osc.Message('/composition/layers/5/bypassed', 0);
+		// layer6Opacity = new osc.Message('/composition/layers/6/bypassed', 0);
+		// layer7Opacity = new osc.Message('/composition/layers/7/bypassed', 0);
+		// layer8Opacity = new osc.Message('/composition/layers/8/bypassed', 0);
 		if(num == 0){
-			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 0);
-			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 0);
-			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
-			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 0);
 		}else if(num == 1){
-			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 1);
-			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 0);
-			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
-			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 0);
+			layer1Opacity = new osc.Message('/composition/layers/1/bypassed', 0);
 		}else if(num == 2){
-			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 0);
-			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 1);
-			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
-			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 0);
+			layer2Opacity = new osc.Message('/composition/layers/2/bypassed', 0);
 		}else if(num == 3){
-			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 0);
-			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 0);
-			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 1);
-			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 0);
+			layer3Opacity = new osc.Message('/composition/layers/3/bypassed', 0);
 		}else if(num == 4){
-			layer1Opacity = new osc.Message('/composition/layers/1/video/opacity', 0);
-			layer2Opacity = new osc.Message('/composition/layers/2/video/opacity', 0);
-			layer3Opacity = new osc.Message('/composition/layers/3/video/opacity', 0);
-			layer4Opacity = new osc.Message('/composition/layers/4/video/opacity', 1);
+			layer4Opacity = new osc.Message('/composition/layers/4/bypassed', 0);
 		}
+		// else if(num == 5){
+		// 	layer5Opacity = new osc.Message('/composition/layers/5/bypassed', 1);
+		// }else if(num == 6){
+		// 	layer6Opacity = new osc.Message('/composition/layers/6/bypassed', 1);
+		// }else if(num == 7){
+		// 	layer7Opacity = new osc.Message('/composition/layers/7/bypassed', 1);
+		// }else if(num == 8){
+		// 	layer8Opacity = new osc.Message('/composition/layers/8/bypassed', 1);
+		// }
 
 		var elements = document.getElementsByClassName("layer-disp active");
 		for(var i = 0; i < elements.length; i ++){
 			elements[i].classList.remove( "active" );
 		}
 
-		if(num > 0){
+		if(num > 0 && num < 9){
 			document.getElementById("layer" + num).classList.add("active");
 		}
 		
@@ -141,6 +205,39 @@
 		oscClient.send(layer2Opacity);
 		oscClient.send(layer3Opacity);
 		oscClient.send(layer4Opacity);
+		// oscClient.send(layer5Opacity);
+		// oscClient.send(layer6Opacity);
+		// oscClient.send(layer7Opacity);
+		// oscClient.send(layer8Opacity);
+	}
+
+
+	var selectLayer = 0;
+
+	function layerStepper(){
+
+  	var n = (Math.floor(selectLayer/2) + 1 )  *(selectLayer % 2);
+		layerSelect(n);
+		
+
+
+		
+		selectLayer = (selectLayer + 1) % 8;
+
+		console.log(n);
+
+
+	}
+
+	var randomLayer = 0;
+	function layerRandomSelect(){
+		var newNum = Math.floor(Math.random()*4)+1;
+		while(newNum == randomLayer){
+			newNum = Math.floor(Math.random()*4)+1;
+			console.log(newNum);
+		}
+		randomLayer = newNum;
+		layerSelect(randomLayer);
 	}
 
 	// var start = null;
@@ -161,29 +258,38 @@
 	//  1 : play step
 	//  2 : fader
 	//  3 : random
-	document.getElementById("stopBtn").onclick = function() {
-		controlType = 0; 
+
+	function controlTypeSelect(num, e){
+		controlType = num; 
 		var elements = document.getElementsByClassName("play-btn active");
 		for(var i = 0; i < elements.length; i ++){
 			elements[i].classList.remove( "active" );
 		}
-		this.classList.add("active");
+		e.classList.add("active");
+	}
+	document.getElementById("stopBtn").onclick = function() {
+		controlTypeSelect(0,this);
+		//停止時にbypass解除
+		layer1Opacity = new osc.Message('/composition/layers/1/bypassed', 0);
+		layer2Opacity = new osc.Message('/composition/layers/2/bypassed', 0);
+		layer3Opacity = new osc.Message('/composition/layers/3/bypassed', 0);
+		layer4Opacity = new osc.Message('/composition/layers/4/bypassed', 0);
+		oscClient.send(layer1Opacity);
+		oscClient.send(layer2Opacity);
+		oscClient.send(layer3Opacity);
+		oscClient.send(layer4Opacity);
 	};
 	document.getElementById("playBtn").onclick = function() {
-		controlType = 1;
-		var elements = document.getElementsByClassName("play-btn active");
-		for(var i = 0; i < elements.length; i ++){
-			elements[i].classList.remove( "active" );
-		}
-		this.classList.add("active");
+		controlTypeSelect(1,this);
 	};
 	document.getElementById("faderBtn").onclick = function() {
-		controlType = 2;
-		var elements = document.getElementsByClassName("play-btn active");
-		for(var i = 0; i < elements.length; i ++){
-			elements[i].classList.remove( "active" );
-		}
-		this.classList.add("active");
+		controlTypeSelect(2,this);
+	};
+	document.getElementById("randomBtn").onclick = function() {
+		controlTypeSelect(3,this);
+	};
+	document.getElementById("audioBtn").onclick = function() {
+		controlTypeSelect(4,this);
 	};
 
 	
@@ -197,18 +303,27 @@
 		
 		
 		if(controlType == 1){   //stepの場合
-			if(frameCount >faderCtrlVal/4+1){
+			if(frameCount > (127-faderCtrlVal)/8+1){
 				layerStepper();
 				frameCount = 0;
 			}
 		}else if(controlType == 2){  //faderの場合
+			layerSelect(Math.floor(faderCtrlVal/25.5));
+		}else if(controlType == 3){  //randomの場合
+			if(frameCount >(127-faderCtrlVal)/8+1){
+				layerRandomSelect();
+				frameCount = 0;
+			}
+		}else if(controlType == 4){  //audioの場合
+
+			var val = Math.floor((faderCtrlVal+1) * getByteFrequencyDataAverage()/8000);
+			layerSelect(Math.min(val, 4));
 			
-			layerSelect(Math.round(faderCtrlVal/25));
+			elVolume.innerHTML = val;
+
 		}
 
 	})();
-
-
 
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -232,33 +347,27 @@
 		var ot = midi.outputs.values();
 		for(var o = ot.next(); !o.done; o = ot.next()){
 			outputs.push(o.value);
-		}
-	
-		
+		}	
 		for(var cnt=0;cnt < inputs.length;cnt++){
 			inputs[cnt].onmidimessage = onMIDIEvent;
 		}
 	}
 
-
-
-
-
 	var faderCtrlVal = 32;
 	function onMIDIEvent(e){
 		if(e.data[2] != 0){ 
 			// なにかをうけとったときの処理
-			console.log(e.data[2]);
+			// console.log(e.data[2]);
 			// console.log(e.data[1]);
-
 			faderCtrlVal = e.data[2];
+
+			sliderElem.value = faderCtrlVal;
 		}
 	}
-
 	function onMIDIFailure(){
 		console.log("munen!");
 	};
-
+	
 	function sendCC(cc, val){
 		// if(outputs.length > 0){
 		//   outputs[0].send([0xB0, cc, val]);
@@ -267,6 +376,102 @@
 			output.send([0xB0 + ch-1, cc, val]);
 		}
 	}
+
+
+	////////////////////////////////////////////////////////////////////////////////
+  // Audio
+	////////////////////////////////////////////////////////////////////////////////
+
+
+
+	var audioCtx, analyser, frequencies, getByteFrequencyDataAverage, elVolume, draw;
+
+	window.AudioContext = window.AudioContext || window.webkitAudioContext;
+	audioCtx = new AudioContext();
+
+	analyser = audioCtx.createAnalyser();
+	frequencies = new Uint8Array(analyser.frequencyBinCount);
+
+	getByteFrequencyDataAverage = function() {
+		analyser.getByteFrequencyData(frequencies);
+		return frequencies.reduce(function(previous, current) {
+			return previous + current;
+		}) / analyser.frequencyBinCount;
+	};
+
+	navigator.mediaDevices.getUserMedia({audio: true})
+		.then(function(stream) {
+			window.hackForMozzila = stream;
+			audioCtx.createMediaStreamSource(stream)
+				// AnalyserNodeに接続
+				.connect(analyser);
+		})
+		.catch(function(err) {
+			console.log(err.message);
+		});
+
+	// 音量を表示する要素
+	elVolume = document.getElementById('volume');
+	// 可能な限り高いフレームレートで音量を取得し、表示を更新する
+	// (draw = function() {
+	// 	elVolume.innerHTML = Math.floor(getByteFrequencyDataAverage());
+	// 	requestAnimationFrame(draw);
+	// })();
+
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Slider GUI
+	////////////////////////////////////////////////////////////////////////////////
+	var sliderElem = document.querySelector('input[type="range"]');
+
+	var rangeValue = function(){
+		var newValue = sliderElem.value;
+		var target = document.querySelector('.value');
+		target.innerHTML = newValue;
+		faderCtrlVal = newValue;
+	}
+
+	sliderElem.addEventListener("input", rangeValue);
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Dialog
+	////////////////////////////////////////////////////////////////////////////////
+
+	var dialogData = 1234;
+	var OSCOut = 7000;
+	const dlg = document.querySelector('#sample-dialog');
+	//Escによるキャンセルをさせない
+	dlg.addEventListener('cancel', (event) => {
+		'use strict';
+		event.preventDefault();
+	});
+	function showModalDialogElement() {
+		'use strict';
+
+		document.querySelector('#OSCOut').value = OSCOut;
+
+
+		return new Promise((resolve, reject) => {
+			dlg.showModal();
+			function onClose(event) {
+				// 2017/2/5現在Chromium:v54のためaddEventListenerの{once: true}は利用できないため自力で解放。v55になれば{once: true}を利用するのが良いと思います。
+				dlg.removeEventListener('close', onClose);
+				if (dlg.returnValue === 'ok') { //returnValueにvalue属性の値が入る
+					// const inputValue = document.querySelector('#input').value;//入力値を取得
+					// alert(inputValue);//テストのためalert
+					// resolve(inputValue);//入力値をresolve
+
+					OSCOut = document.querySelector('#OSCOut').value;
+					oscClient = new osc.Client('127.0.0.1', OSCOut);
+				} else {
+					reject();
+				}
+			}
+			dlg.addEventListener('close', onClose, {once: true});
+		});
+	}
+
+
 
 </script>
 </html>
