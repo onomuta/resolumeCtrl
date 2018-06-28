@@ -105,7 +105,7 @@
 	
 
 	<input type="range" min="0" max="127" step="1" value="0">
-	<div class="value" style="position:absolute; left: 20px; top:130px; z-index:-1">0</div>
+	<div class="value" style="position:absolute; left: 20px; top:90px; z-index:-1">0</div>
 
 	<!-- <select id="select-midi-input-device"></select>
 	<select id="select-midi-input-ch"></select> -->
@@ -117,10 +117,10 @@
 	<dialog id="sample-dialog">
 		<form method="dialog">
 			<span>OSC Out</span>
-			<input id="oscOut" placeholder="Port"/><br>
+			<input type="number" min="0" max="9999999"id="oscOut" placeholder="Port"/><br>
 
-			<!-- <span>MIDI 1</span>
-			<input id="cc1" placeholder="cc"/><br> -->
+			<span>MIDI 1</span>
+			<input type="number" min="0" max="127"id="cc1" placeholder="cc"/><br>
 
 			<button type="submit" value="cancel">Cancel</button>
 			<button type="submit" value="ok">Ok</button>
@@ -319,7 +319,7 @@
 			var val = Math.floor((faderCtrlVal+1) * getByteFrequencyDataAverage()/8000);
 			layerSelect(Math.min(val, 4));
 			
-			elVolume.innerHTML = val;
+			// elVolume.innerHTML = val;
 
 		}
 
@@ -359,9 +359,12 @@
 			// なにかをうけとったときの処理
 			// console.log(e.data[2]);
 			// console.log(e.data[1]);
-			faderCtrlVal = e.data[2];
 
-			sliderElem.value = faderCtrlVal;
+			if(e.data[1] == cc1){
+				faderCtrlVal = e.data[2];
+				sliderElem.value = faderCtrlVal;
+			}
+
 		}
 	}
 	function onMIDIFailure(){
@@ -411,13 +414,7 @@
 		});
 
 	// 音量を表示する要素
-	elVolume = document.getElementById('volume');
-	// 可能な限り高いフレームレートで音量を取得し、表示を更新する
-	// (draw = function() {
-	// 	elVolume.innerHTML = Math.floor(getByteFrequencyDataAverage());
-	// 	requestAnimationFrame(draw);
-	// })();
-
+	// elVolume = document.getElementById('volume');
 
   ////////////////////////////////////////////////////////////////////////////////
   // Slider GUI
@@ -439,6 +436,7 @@
 
 	var dialogData = 1234;
 	var OSCOut = 7000;
+	var cc1 = 1;
 	const dlg = document.querySelector('#sample-dialog');
 	//Escによるキャンセルをさせない
 	dlg.addEventListener('cancel', (event) => {
@@ -449,6 +447,7 @@
 		'use strict';
 
 		document.querySelector('#OSCOut').value = OSCOut;
+		document.querySelector('#cc1').value = cc1;
 
 
 		return new Promise((resolve, reject) => {
@@ -463,6 +462,8 @@
 
 					OSCOut = document.querySelector('#OSCOut').value;
 					oscClient = new osc.Client('127.0.0.1', OSCOut);
+
+					cc1 = document.querySelector('#cc1').value;
 				} else {
 					reject();
 				}
